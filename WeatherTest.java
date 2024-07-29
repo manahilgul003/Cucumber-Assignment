@@ -1,40 +1,62 @@
-package com.tau.steps;
+package Parallel;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.time.Duration;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
-
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import com.aventstack.extentreports.ExtentReports;
+import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.reporter.ExtentHtmlReporter;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.github.bonigarcia.wdm.WebDriverManager;
 
-
+import java.net.MalformedURLException;
+import java.net.URL;
 public class WeatherTest {
     WebDriver driver;
     String temperatureText;
     int currentTemperature;
     String totaltext;
     int currentTotal;
+    private static ExtentReports extent;
+    private static ExtentTest test;
+    
 
     @Before
-    public void before_setup() {
-        System.setProperty("webdriver.gecko.driver", "C:\\Users\\Ayesha Noor\\eclipse-workspace\\tau-tester-course\\src\\test\\resources\\geckodriver.exe"); // Update with your path
-        driver = new FirefoxDriver();
+    public void before_setup() throws MalformedURLException {
+    	WebDriverManager.chromedriver().setup();
+   	 DesiredCapabilities capabilities = new DesiredCapabilities();
+        capabilities.setBrowserName("chrome");
+        driver = new RemoteWebDriver(new URL("http://172.16.2.83:4444/wd/hub"), capabilities);
+       ExtentHtmlReporter htmlReporter = new ExtentHtmlReporter("Report.html");
+       extent = new ExtentReports();
+       extent.attachReporter(htmlReporter);
+       test = extent.createTest("Weather Shopper Test", "Test to verify shopping on Weather Shopper site based on temperature");
     }
 
     @Given("I am on the Weather Shopper homepage")
     public void i_am_on_the_Weather_Shopper_homepage() {
         driver.get("https://weathershopper.pythonanywhere.com/");
+        test.pass("given");
     }
 
     @When("the temperature is checked")
@@ -42,6 +64,7 @@ public class WeatherTest {
         WebElement temperatureElement = driver.findElement(By.id("temperature"));
         temperatureText = temperatureElement.getText();
         currentTemperature = Integer.parseInt(temperatureText.replaceAll("[^\\d]", "").trim());
+        test.pass("when");
     }
 
     @Then("I choose the appropriate product category based on the temperature")
@@ -53,6 +76,7 @@ public class WeatherTest {
             WebElement sunscreensButton = driver.findElement(By.xpath("/html/body/div[1]/div[3]/div[2]/a/button"));
             sunscreensButton.click();
         }
+        test.pass("then");
     }
     @Then("I add the necessary products to the cart")
     public void i_add_the_necessary_products_to_the_cart() throws InterruptedException {
@@ -104,12 +128,14 @@ public class WeatherTest {
             cheapestSPF50Product.click();
             Thread.sleep(2000);
         }
+        test.pass("then");
     }
 
     @Then("I click on the cart")
     public void i_click_on_the_cart() {
         WebElement cartButton = driver.findElement(By.xpath("/html/body/nav/ul/button"));
         cartButton.click();
+        test.pass("then");
     }
 
     @Then("I verify that the shopping cart looks correct")
@@ -149,50 +175,73 @@ public class WeatherTest {
            assertEquals(sum2,currentTotal2);
             
         }
+        test.pass("then");
     }
 
     @Then("I fill out my payment details")
     public void i_fill_out_my_payment_details() throws InterruptedException {
-//    	WebElement payButton=driver.findElement(By.xpath("/html/body/div[1]/div[3]/form/button/span")); 
-//    	payButton.click();
-//        WebElement stripeIframe = driver.findElement(By.className("stripeInFrame appView iframe desktop en"));
-//        driver.switchTo().frame(stripeIframe);
     	WebElement CheckoutPage= driver.findElement(By.cssSelector("body > div.container.top-space-50"));
     	CheckoutPage.click();
     	 WebElement payButton=driver.findElement(By.xpath("/html/body/div[1]/div[3]/form/button")); 
  	payButton.click();
- 	 driver.switchTo().frame(0);
- 	 Thread.sleep(5000);
- 	
-        // Fill out the payment form
-        WebElement emailField = driver.findElement(By.id("email"));
-        emailField.sendKeys("test@example.com");
-
-        WebElement cardNumberField = driver.findElement(By.id("card_number"));
-        cardNumberField.sendKeys("4242424242424242");
-
-        WebElement cardExpiryField = driver.findElement(By.id("cc-exp"));
-        cardExpiryField.sendKeys("12/26");
-
-        WebElement cardCvcField = driver.findElement(By.id("cc-csc"));
-        cardCvcField.sendKeys("123");
-
-Thread.sleep(5000);
+  WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        // Switch to the iframe containing the payment form, if applicable
+        WebElement iframe = driver.findElement(By.tagName("iframe"));
+        driver.switchTo().frame(iframe);
+        // Wait for the email input field to be visible and interactable
+        wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("email")));
+        WebElement emailField = wait.until(ExpectedConditions.elementToBeClickable(By.id("email")));
+        emailField.sendKeys("Manahil@gmail.com");
+        sleep(600);  // Wait for 500 milliseconds
+        WebElement cardNumberField = wait.until(ExpectedConditions.elementToBeClickable(By.id("card_number")));
+       String  cardNumber="4242424242424242";
+        for (char digit : cardNumber.toCharArray()) {
+            cardNumberField.sendKeys(String.valueOf(digit));
+            sleep(100);  // Slight pause between each digit
+        }
+        sleep(500);  // Wait for 500 milliseconds after entering the card number
+        WebElement expiryField = wait.until(ExpectedConditions.elementToBeClickable(By.id("cc-exp")));
+     String expiry="72024";
+		for (char digit : expiry.toCharArray()) {
+            expiryField.sendKeys(String.valueOf(digit));
+            sleep(100);  // Slight pause between each digit
+        }
+        sleep(500);  // Wait for 500 milliseconds
+        WebElement cvvField = wait.until(ExpectedConditions.elementToBeClickable(By.id("cc-csc")));
+        cvvField.sendKeys("1234");
+        sleep(600);  // Wait for 500 milliseconds
+        WebElement zipCodeField = wait.until(ExpectedConditions.elementToBeClickable(By.id("billing-zip")));
+        zipCodeField.sendKeys("46000");
+        sleep(500);  // Wait for 500 milliseconds
+        // Wait for the submit button or equivalent to be clickable and then click it
+//        WebElement submitButton = wait.until(ExpectedConditions.elementToBeClickable(By.className("iconTick")));
+//        submitButton.click();
+        // Switch back to the default content if necessary
+        //driver.switchTo().defaultContent();
+        test.pass("then");
     }
     @Then("Submit the Form")
-    public void submit_the_form() {
+    public void submit_the_form() throws InterruptedException {
     	
-    	 WebElement SubmitField = driver.findElement(By.xpath("//*[@id=\"submitButton\"]/span/span"));
-    	 SubmitField.click();
-    	 WebElement PaymentSuccess=driver.findElement(By.xpath("/html/body/div"));
-    	 assertTrue(PaymentSuccess.isDisplayed());
+    	driver.findElement(By.cssSelector("#submitButton > span > span")).click();
+        System.out.println("click being done");
+        Thread.sleep(2000);
+        driver.switchTo().defaultContent();
+        Thread.sleep(5000);
+        WebElement thankYou = driver.findElement(By.cssSelector("body > div > div:nth-child(1) > h2"));
+        assertEquals(thankYou.getText(), "PAYMENT SUCCESS");
+        test.pass("then");
+    	 
     }
  // Method to get the product price (assuming it can be extracted from the WebElement)
-    private double getProductPrice(WebElement product) {
-        // Implementation will depend on how the price is represented on the page
-        String priceText = product.findElement(By.xpath("//p[contains(text(), '\" + productType + \"')]/following-sibling::p[contains(text(), 'Price')]/following-sibling::button\"")).getText();
-        return Double.parseDouble(priceText.replace("[^\\d]", "").trim());
+    private void sleep(int milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
+ 
     @After
     public void quit() {
         if (driver != null) {
