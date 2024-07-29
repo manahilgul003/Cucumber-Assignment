@@ -10,7 +10,7 @@ import java.util.PriorityQueue;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
 
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
@@ -19,7 +19,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
 
-public class Weather {
+public class WeatherTest {
     WebDriver driver;
     String temperatureText;
     int currentTemperature;
@@ -28,8 +28,8 @@ public class Weather {
 
     @Before
     public void before_setup() {
-        System.setProperty("webdriver.chrome.driver", "C:\\Users\\Ayesha Noor\\eclipse-workspace\\tau-tester-course\\src\\test\\resources\\chromedriver.exe"); // Update with your path
-        driver = new ChromeDriver();
+        System.setProperty("webdriver.gecko.driver", "C:\\Users\\Ayesha Noor\\eclipse-workspace\\tau-tester-course\\src\\test\\resources\\geckodriver.exe"); // Update with your path
+        driver = new FirefoxDriver();
     }
 
     @Given("I am on the Weather Shopper homepage")
