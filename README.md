@@ -1,5 +1,3 @@
-Here's a README.md file for your GitHub repository. It includes instructions on setting up and running the project, along with a brief description of each file.
-
 # Weather Shopper Test Automation
 This repository contains an automated testing framework for the Weather Shopper application. The tests are written using Selenium, Cucumber, and JUnit, and they validate the shopping process based on the temperature.
 
